@@ -47,7 +47,8 @@ def get_file_mappings(wallet_address):
     # else:
         # return []  # Return empty list in case of an error
     return [{"fileId":1615127, "fileUrl":"https://drive.google.com/uc?export=download&id=1DX-e7gzJHQ_j_EJWUeBUdhYgwxmKf2oF"}
-            ,{"fileId":1615146, "fileUrl":"https://drive.google.com/uc?export=download&id=1qm0gQ3w462qZYdTrDH4bU8wuH8Qs9dVq"}]
+            ,{"fileId":1615146, "fileUrl":"https://drive.google.com/uc?export=download&id=1qm0gQ3w462qZYdTrDH4bU8wuH8Qs9dVq"}
+            ]
 
 # Download and decrypt file
 def download_and_decrypt(file_url, gpg_signature):
@@ -138,7 +139,7 @@ def process_json_files(redis_client, file_mappings, gpg_signature, input_dir):
             json_data = json.load(file)
             if "tokens" in json_data:
                 for token in json_data["tokens"]:
-                    # Process token data if needed
+                    # Ensure reason is always available
                     token["reason"] = token.get("reason", "No reason provided.")
             curr_file_json_data.append(json_data)
         with open(file_path, 'w') as file:
@@ -146,15 +147,30 @@ def process_json_files(redis_client, file_mappings, gpg_signature, input_dir):
 
     print("JSON files processed and formatted successfully.")
 
-    # Ensure that all entries are unique by comparing the serialized data
-    total_json_entries = sum(len(entry["tokens"]) for entry in curr_file_json_data)
-    
     # Flatten the list of tokens for comparison
     curr_file_tokens = [token for entry in curr_file_json_data for token in entry["tokens"]]
-    unique_tokens = [token for token in curr_file_tokens if token not in [existing_token for entry in combined_json_data for existing_token in entry.get("tokens", [])]]
+    combined_tokens = [token for entry in combined_json_data for token in entry.get("tokens", [])]
 
-    json_uniqueness_score = len(unique_tokens) / total_json_entries if total_json_entries > 0 else 0.0
-    print(f"Uniqueness Score: {json_uniqueness_score}, {len(unique_tokens)} unique tokens out of {total_json_entries} total tokens.")
+    # Calculate uniqueness by comparing current file tokens against combined (old) tokens
+    unique_tokens = []
+    for token in curr_file_tokens:
+        # Check if the token exists in the combined data with the exact same 'reason'
+        if not any(
+            token["chain"] == existing_token["chain"] and
+            token["contract"] == existing_token["contract"]
+            for existing_token in combined_tokens
+        ):
+            unique_tokens.append(token)
+
+    # Calculate total and unique entries
+    total_json_entries = len(curr_file_tokens)
+    unique_json_entries = len(unique_tokens)
+
+    # Uniqueness score calculation
+    json_uniqueness_score = unique_json_entries / total_json_entries if total_json_entries > 0 else 0.0
+
+    print(f"Uniqueness Score: {json_uniqueness_score}, {unique_json_entries} unique tokens out of {total_json_entries} total tokens.")
+    print(f"Unique Tokens: {unique_tokens}")
 
     return combined_json_data, curr_file_json_data, json_uniqueness_score, unique_tokens
 
@@ -169,6 +185,7 @@ if __name__ == "__main__":
     
     combined_json_data, curr_file_json_data, json_uniqueness_score, unique_json_entries = process_json_files(redis_client, file_mappings, gpg_signature, input_dir)
     
+    print("Unique JSON Entries:", unique_json_entries)
     print("Combined JSON Data:", combined_json_data)
     print("Current File JSON Data:", curr_file_json_data)
     print("JSON Uniqueness Score:", json_uniqueness_score)
