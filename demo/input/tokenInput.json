@@ -1,0 +1,15 @@
+{
+    "walletAddress": "0x418C36a32B9A0ec93d5f613FFA92DA1474612E26",
+    "tokens": [
+        {
+            "chain": "Eth",
+            "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "reason": "NEW2 Official3 Trump Meme is HERE! It\u00e2\u20ac\u2122s time to celebrate everything we stand for: WINNING! Join my very special Trump Community."
+        },
+        {
+            "chain": "Eth",
+            "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "reason": "We stand for: WINNING! Join my very special Trump Community."
+        }
+    ]
+}
