@@ -11,6 +11,8 @@ import hashlib
 import base58
 from base64 import b64decode
 
+from my_proof.proof_of_uniqueness import uniqueness_details
+from my_proof.proof_of_quality_n_authenticity import final_scores
 from my_proof.models.proof_response import ProofResponse
 
 class Proof:
@@ -40,24 +42,30 @@ class Proof:
                         break
         except Exception as e:
             logging.error("parse json error: %s", str(e), exc_info=True)
-        logging.info( "{} on {} supply {}".format(data_contract, data_chain, total_supply))
-        
+        # logging.info( "{} on {} supply {}".format(data_contract, data_chain, total_supply))
+        wallet_address = "0x1234567890abcdef"
+        uniqueness_details_ = uniqueness_details(wallet_address, self.config['input_dir'] )
+        unique_tokens = uniqueness_details_.get("unique_tokens", [])
+        uniqueness_score = uniqueness_details_.get("uniqueness_score", 0.0)
+        # Calculate uniqueness with authenticity and ownership quality
 
-        self.proof_response.ownership = ownership
-        self.proof_response.quality = quality
-        self.proof_response.authenticity = authenticity
-        self.proof_response.uniqueness = uniqueness
+
+        ownership_score, authenticity_score, quality_score = final_scores(wallet_address, unique_tokens)
+        self.proof_response.ownership = ownership_score
+        self.proof_response.quality = quality_score
+        self.proof_response.authenticity = authenticity_score
+        self.proof_response.uniqueness = uniqueness_score
 
         # Calculate overall score and validity
-        total_score = quality * (1 if uniqueness else 0.2) * ownership * authenticity
+        total_score = quality_score * (1 if uniqueness_score else 0.2) * ownership_score * authenticity_score
         self.proof_response.score = total_score
-        self.proof_response.valid = ownership and total_score >= 0
+        self.proof_response.valid = ownership_score and total_score >= 0
 
         # Additional (public) properties to include in the proof about the data
         self.proof_response.attributes = {
             'total_score': total_score,
-            'score_threshold': quality,
-            'email_verified': email_matches,
+            'score_threshold': quality_score,
+            # 'email_verified': email_matches,
         }
 
         # Additional metadata about the proof, written onchain
@@ -66,21 +74,3 @@ class Proof:
         }
 
         return self.proof_response
-
-
-def check_hash_repeat(rpc_url, hash):
-    payload = {
-        "hash": hash,
-    }
-    try:
-        response = requests.post(rpc_url, json=payload, timeout=3)
-        response.raise_for_status()
-        result = response.json()
-
-        result_data = bool(result.get("data", False))
-
-        return not result_data
-    
-    except Exception as e:
-        logging.error("request error: %s", str(e), exc_info=True)
-        return True

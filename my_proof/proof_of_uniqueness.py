@@ -175,6 +175,20 @@ def process_json_files(redis_client, file_mappings, gpg_signature, input_dir):
     return combined_json_data, curr_file_json_data, json_uniqueness_score, unique_tokens
 
 
+def uniqueness_details(wallet_address, input_dir):
+    wallet_address = wallet_address or "0x1234567890abcdef"
+    gpg_signature = os.environ.get("SIGNATURE") or "0x0657fd96b385e99d1d76f8d9a27d45cbbe78489bb57325ccbaf642535dfeb1d455223d71fdbb77ce9c12a7e97ca772b1397ac56d29e30e0cd7adee4561e6ce051b"
+    redis_client = get_redis_client()
+    file_mappings = get_file_mappings(wallet_address)
+    
+    combined_json_data, curr_file_json_data, json_uniqueness_score, unique_json_entries = process_json_files(redis_client, file_mappings, gpg_signature, input_dir)
+    
+    return {
+        "unique_json_data": unique_json_entries,
+        "old_files_json_data": combined_json_data,
+        "curr_file_json_data": curr_file_json_data,
+        "uniqueness_score": json_uniqueness_score
+    }
 
 # Execute the script independently
 if __name__ == "__main__":

@@ -143,6 +143,14 @@ def calculate_token_metrics(wallet_address, unique_tokens, config, networks):
     
     return results
 
+def final_scores(wallet_address, unique_tokens):
+    # return the average of the scores
+    results = calculate_token_metrics(wallet_address, unique_tokens, config, networks)
+    ownership = sum(result['ownership'] for result in results) / len(results)
+    authenticity = sum(result['authenticity'] for result in results) / len(results)
+    quality = sum(result['quality'] for result in results) / len(results)
+    return ownership, authenticity, quality
+
 # Example of how this would be executed
 if __name__ == "__main__":
     # Assuming we have some example unique tokens
