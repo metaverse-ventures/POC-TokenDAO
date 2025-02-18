@@ -13,32 +13,33 @@ class Proof:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.proof_response = ProofResponse(dlp_id=config['dlp_id'])
+        self.wallet_address = ""
+    
+    def read_author_from_file(self, file_path: str):
+        """
+        Read parameters from a text file.
+
+        :param file_path: Path to the text file
+        :return: Tuple containing author, signature, and random_string
+        """
+        params = {}
+        with open(file_path, "r") as file:
+            for line in file:
+                key, value = line.strip().split(": ", 1)
+                params[key] = value
+        return params["author"]
 
     def generate(self) -> ProofResponse:
         """Generate proofs for all input files."""
         logging.info("Starting proof generation")
 
-        # Iterate through files and calculate data validity
-        account_email = ""
-        data_chain = ""
-        data_contract = ""
-        data_reason = ""
-        try:
-            for input_filename in os.listdir(self.config['input_dir']):
-                input_file = os.path.join(self.config['input_dir'], input_filename)
-                if input_filename.lower() == 'decrypted_file.zip' or input_filename.lower() == 'token.json':
-                    with open(input_file, 'r') as f:
-                        input_data = json.load(f)
-                        account_email = input_data.get('email', "")
-                        data_chain = input_data.get('chain', "")
-                        data_contract = input_data.get('contract', "")
-                        data_reason = input_data.get('reason', "")
-                        break
-        except Exception as e:
-            logging.error("parse json error: %s", str(e), exc_info=True)
-        # logging.info( "{} on {} supply {}".format(data_contract, data_chain, total_supply))
-        wallet_address = "0x1234567890abcdef"
-        uniqueness_details_ = uniqueness_details(wallet_address, self.config['input_dir'] )
+        # Read the wallet address from the first .txt file in the input directory
+        txt_files = [f for f in os.listdir(self.config['input_dir']) if f.endswith('.txt')]
+        if txt_files:
+            self.wallet_address = self.read_author_from_file(os.path.join(self.config['input_dir'], txt_files[0])).lower()
+            logging.info(f"Wallet Address {self.wallet_address}")
+
+        uniqueness_details_ = uniqueness_details(self.wallet_address, self.config['input_dir'] )
         unique_tokens = uniqueness_details_.get("unique_json_data", [])
         logging.info(f"Unique tokens from proof.py: {unique_tokens}")
 
