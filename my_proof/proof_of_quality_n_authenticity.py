@@ -105,21 +105,21 @@ def is_valid_solana_address(address):
   
 
 # Updated method to process the uniqueness with authenticity and ownership quality calculation
-def calculate_token_metrics(wallet_address, unique_tokens, config, networks):
+def calculate_token_metrics(unique_tokens, networks):
     results = []
 
     for token in unique_tokens:
         data_chain = token.get('chain', '').lower()
         data_contract = token.get('contract', '')
         data_reason = token.get('reason', '')
-
+        print(f"Processing token {data_contract} on {data_chain} with reason: {data_reason}")
         # Ownership check
-        wallet_address_matches = config['wallet_address'] == wallet_address
-        ownership = 1 if wallet_address_matches else 0
+        # wallet_address_matches = config['wallet_address'] == wallet_address
+        # ownership = 1 if wallet_address_matches else 0
 
         total_supply = 0
 
-        if ownership and data_contract != "":
+        if data_contract != "":
             if data_chain == "solana":
                 if is_valid_solana_address(data_contract):
                     total_supply = get_total_supply_solana(networks[data_chain], data_contract)
@@ -136,20 +136,21 @@ def calculate_token_metrics(wallet_address, unique_tokens, config, networks):
         # Save the results for each unique token
         results.append({
             "token": token,
-            "ownership": ownership,
             "authenticity": authenticity,
             "quality": quality
         })
     
     return results
 
-def final_scores(wallet_address, unique_tokens):
+def final_scores(unique_tokens):
     # return the average of the scores
-    results = calculate_token_metrics(wallet_address, unique_tokens, config, networks)
-    ownership = sum(result['ownership'] for result in results) / len(results)
+    results = calculate_token_metrics(unique_tokens, networks)
+    if not results:
+        return 0, 0
+    
     authenticity = sum(result['authenticity'] for result in results) / len(results)
     quality = sum(result['quality'] for result in results) / len(results)
-    return ownership, authenticity, quality
+    return authenticity, quality
 
 # Example of how this would be executed
 if __name__ == "__main__":
@@ -167,8 +168,6 @@ if __name__ == "__main__":
         }
     ]
     
-    # Config and networks (example values)
-    config = {"wallet_address": "0x418C36a32B9A0ec93d5f613FFA92DA1474612E26"}
     networks = {
         "eth": "https://mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
         "base": "https://base-mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
@@ -176,7 +175,7 @@ if __name__ == "__main__":
         "solana": "https://alien-side-emerald.solana-mainnet.quiknode.pro/a9c0f414bbd654569d77f8cfec805701a08b5f03",
     }
 
-    results = calculate_token_metrics("0x418C36a32B9A0ec93d5f613FFA92DA1474612E26", unique_tokens, config, networks)
+    results = calculate_token_metrics( unique_tokens, networks)
 
     # Output the results
     for result in results:

@@ -45,12 +45,14 @@ class Proof:
         # logging.info( "{} on {} supply {}".format(data_contract, data_chain, total_supply))
         wallet_address = "0x1234567890abcdef"
         uniqueness_details_ = uniqueness_details(wallet_address, self.config['input_dir'] )
-        unique_tokens = uniqueness_details_.get("unique_tokens", [])
+        unique_tokens = uniqueness_details_.get("unique_json_data", [])
+        logging.info(f"Unique tokens from proof.py: {unique_tokens}")
+        
         uniqueness_score = uniqueness_details_.get("uniqueness_score", 0.0)
+        authenticity_score, quality_score = final_scores(unique_tokens)
         # Calculate uniqueness with authenticity and ownership quality
 
-
-        ownership_score, authenticity_score, quality_score = final_scores(wallet_address, unique_tokens)
+        ownership_score = 1
         self.proof_response.ownership = ownership_score
         self.proof_response.quality = quality_score
         self.proof_response.authenticity = authenticity_score
