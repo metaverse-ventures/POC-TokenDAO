@@ -53,8 +53,7 @@ class Proof:
         self.proof_response.authenticity = authenticity_score
         self.proof_response.uniqueness = uniqueness_score
 
-        # Calculate overall score and validity
-        total_score = quality_score * (1 if uniqueness_score else 0.2) * ownership_score * authenticity_score
+        total_score = self.calculate_final_score(self.proof_response.model_dump())
         self.proof_response.score = total_score
         self.proof_response.valid = ownership_score and total_score >= 0
 
@@ -62,7 +61,6 @@ class Proof:
         self.proof_response.attributes = {
             'total_score': total_score,
             'score_threshold': quality_score,
-            # 'email_verified': email_matches,
         }
 
         # Additional metadata about the proof, written onchain
@@ -71,3 +69,18 @@ class Proof:
         }
 
         return self.proof_response
+    
+    def calculate_final_score(self, proof_response_object: Dict[str, Any]) -> float:
+        attributes = ['authenticity', 'uniqueness', 'quality', 'ownership']
+        weights = {
+            'authenticity': 0.325, 
+            'ownership': 0.208, 
+            'uniqueness': 0.142,  
+            'quality': 0.325
+        }
+
+        weighted_sum = 0.0
+        for attr in attributes:
+            weighted_sum += proof_response_object.get(attr, 0) * weights[attr]
+
+        return weighted_sum

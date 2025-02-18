@@ -129,7 +129,17 @@ def calculate_token_metrics(unique_tokens, networks):
 
         # Authenticity and Quality Calculation
         authenticity = 1 if total_supply > 0 else 0
-        quality = 1 if len(data_reason.strip()) >= 15 else 0.5
+
+        # Quality Calculation
+        reason_length = len(data_reason.strip())
+        if reason_length >= 30:
+            quality = 1
+        elif 15 <= reason_length < 29:
+            quality = 0.5
+        elif 6 <= reason_length < 14:
+            quality = 0.1
+        else:
+            quality = 0
 
         # Save the results for each unique token
         results.append({
