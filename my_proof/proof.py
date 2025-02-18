@@ -1,15 +1,8 @@
-import io
 import json
 import logging
 import os
 from typing import Dict, Any
-import zipfile
-
-import requests
 import json
-import hashlib
-import base58
-from base64 import b64decode
 
 from my_proof.proof_of_ownership import verify_ownership
 from my_proof.proof_of_uniqueness import uniqueness_details
