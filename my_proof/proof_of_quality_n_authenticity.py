@@ -1,6 +1,5 @@
 from base64 import b64decode
 import logging
-
 import base58
 import requests
 
