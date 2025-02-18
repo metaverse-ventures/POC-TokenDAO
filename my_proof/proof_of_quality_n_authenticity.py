@@ -10,7 +10,6 @@ networks = {
     "vana": "https://rpc.vana.org",
     "solana": "https://alien-side-emerald.solana-mainnet.quiknode.pro/a9c0f414bbd654569d77f8cfec805701a08b5f03",
 }
-api_url = "https://deoracle.io/api/token/verify"
 
 TOTAL_SUPPLY_METHOD = "0x18160ddd"
 
