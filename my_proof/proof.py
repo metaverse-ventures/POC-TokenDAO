@@ -11,6 +11,7 @@ import hashlib
 import base58
 from base64 import b64decode
 
+from my_proof.proof_of_ownership import verify_ownership
 from my_proof.proof_of_uniqueness import uniqueness_details
 from my_proof.proof_of_quality_n_authenticity import final_scores
 from my_proof.models.proof_response import ProofResponse
@@ -47,12 +48,12 @@ class Proof:
         uniqueness_details_ = uniqueness_details(wallet_address, self.config['input_dir'] )
         unique_tokens = uniqueness_details_.get("unique_json_data", [])
         logging.info(f"Unique tokens from proof.py: {unique_tokens}")
-        
+
         uniqueness_score = uniqueness_details_.get("uniqueness_score", 0.0)
         authenticity_score, quality_score = final_scores(unique_tokens)
         # Calculate uniqueness with authenticity and ownership quality
 
-        ownership_score = 1
+        ownership_score = verify_ownership(self.config['input_dir'])
         self.proof_response.ownership = ownership_score
         self.proof_response.quality = quality_score
         self.proof_response.authenticity = authenticity_score
