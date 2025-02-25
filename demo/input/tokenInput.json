@@ -9,6 +9,16 @@
             "chain": "Eth",
             "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec8",
             "reason": "We stand for: WINNING! Join my very special Trump Community."
+        },
+        {
+            "chain": "solana",
+            "contract": "Bo9jh3wsmcC2AjakLWzNmKJ3SgtZmXEcSaW7L2FAvUsU",
+            "reason": "NEW2 Official3 Trump Meme is HERE! Its time to celebrate everything we stand for: WINNING! Join my very special Trump Community."
+        },
+        {
+            "chain": "vana",
+            "contract": "0x0607E8FA08407E7367c4dc31BBF0388086E9a836",
+            "reason": "It is a Vana token contract address, "
         }
     ]
 }

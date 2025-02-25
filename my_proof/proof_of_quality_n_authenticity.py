@@ -1,14 +1,18 @@
 from base64 import b64decode
 import logging
+import os
 import base58
 import requests
 
-
+# "https://mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
+# "https://base-mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c"
+# "https://rpc.vana.org"
+# "https://alien-side-emerald.solana-mainnet.quiknode.pro/a9c0f414bbd654569d77f8cfec805701a08b5f03"
 networks = {
-    "eth": "https://mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
-    "base": "https://base-mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
-    "vana": "https://rpc.vana.org",
-    "solana": "https://alien-side-emerald.solana-mainnet.quiknode.pro/a9c0f414bbd654569d77f8cfec805701a08b5f03",
+    "eth": os.environ.get("ETH_RPC_URL"),
+    "base": os.environ.get("BASE_RPC_URL") ,
+    "vana": os.environ.get("VANA_RPC_URL"),
+    "solana": os.environ.get("SOLANA_RPC_URL"),
 }
 
 TOTAL_SUPPLY_METHOD = "0x18160ddd"
