@@ -28,7 +28,6 @@ def recover_account(author: str) -> bool:
 def verify_ownership(input_dir: str) -> float:
     """Verify ownership by checking the signature in a .txt file."""
     # logging.info(f"Verifying ownership in directory: {input_dir}")
-    txt_files = [f for f in os.listdir(input_dir) if f.endswith('.txt')]
     json_files = [f for f in os.listdir(input_dir) if f.endswith('.json')]
 
     if len(json_files) != 1:
