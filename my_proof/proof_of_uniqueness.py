@@ -33,18 +33,18 @@ def get_redis_client():
 # Fetch file mappings from API
 # TODO: Remove comments
 def get_file_mappings(wallet_address):
-    validator_base_api_url = os.environ.get('VALIDATOR_BASE_API_URL')
-    endpoint = "/api/userinfo"
-    url = f"{validator_base_api_url.rstrip('/')}{endpoint}"
+    # validator_base_api_url = os.environ.get('VALIDATOR_BASE_API_URL')
+    # endpoint = "/api/userinfo"
+    # url = f"{validator_base_api_url.rstrip('/')}{endpoint}"
 
-    payload = {"walletAddress": wallet_address}  # Send walletAddress in the body
-    headers = {"Content-Type": "application/json"}  # Set headers for JSON request
+    # payload = {"walletAddress": wallet_address}  # Send walletAddress in the body
+    # headers = {"Content-Type": "application/json"}  # Set headers for JSON request
 
-    response = requests.post(url, json=payload, headers=headers)  # Make POST request
+    # response = requests.post(url, json=payload, headers=headers)  # Make POST request
 
-    if response.status_code == 200:
-        return response.json()  # Return JSON response
-    else:
+    # if response.status_code == 200:
+    #     return response.json()  # Return JSON response
+    # else:
         return []  # Return empty list in case of an error
     # return [{"fileId":1615127, "fileUrl":"https://drive.google.com/uc?export=download&id=1DX-e7gzJHQ_j_EJWUeBUdhYgwxmKf2oF"}
     #         ,{"fileId":1615146, "fileUrl":"https://drive.google.com/uc?export=download&id=1qm0gQ3w462qZYdTrDH4bU8wuH8Qs9dVq"}
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     redis_client = get_redis_client()
     file_mappings = get_file_mappings("0x1234567890abcdef")
     gpg_signature = "0x0657fd96b385e99d1d76f8d9a27d45cbbe78489bb57325ccbaf642535dfeb1d455223d71fdbb77ce9c12a7e97ca772b1397ac56d29e30e0cd7adee4561e6ce051b"
-    input_dir = "./demo/input"
+    input_dir = "../demo/input"
     
     combined_json_data, curr_file_json_data, json_uniqueness_score, unique_json_entries = process_json_files(redis_client, file_mappings, gpg_signature, input_dir)
     
