@@ -1,23 +1,18 @@
 import logging
 import os
+import json
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-def recover_account(author: str, signature: str, random_string: str) -> bool:
-    """
-    Recover Ethereum account from signature and verify ownership.
-
-    :param author: Ethereum address of the supposed signer
-    :param signature: Signature to verify
-    :param random_string: Random string used for signing
-    :return: True if the recovered account matches the author, False otherwise
-    """
-    if not author or not signature or not random_string:
-        logging.error("Missing required fields: author, signature, or random_string")
-        return False
-
+def recover_account(author: str) -> bool:
     try:
-        message_encoded = encode_defunct(text=random_string)
+        message_text = os.environ.get("FIXED_MESSAGE", "Please sign to retrieve your encryption key")
+        signature = os.environ.get("SIGNATURE", "0x0657fd96b385e99d1d76f8d9a27d45cbbe78489bb57325ccbaf642535dfeb1d455223d71fdbb77ce9c12a7e97ca772b1397ac56d29e30e0cd7adee4561e6ce051b")
+
+        # Encode the message properly
+        message_encoded = encode_defunct(text=message_text)
+
+        # Recover the address
         recovered_address = Account.recover_message(message_encoded, signature=signature)
         
         if recovered_address.lower() == author.lower():
@@ -30,31 +25,30 @@ def recover_account(author: str, signature: str, random_string: str) -> bool:
         logging.error(f"Error during recovery: {e}")
         return False
 
-def read_params_from_file(file_path: str):
-    """
-    Read parameters from a text file.
-
-    :param file_path: Path to the text file
-    :return: Tuple containing author, signature, and random_string
-    """
-    params = {}
-    with open(file_path, "r") as file:
-        for line in file:
-            key, value = line.strip().split(": ", 1)
-            params[key] = value
-    return params["author"], params["signature"], params["random_string"]
-
 def verify_ownership(input_dir: str) -> float:
     """Verify ownership by checking the signature in a .txt file."""
-    logging.info(f"Verifying ownership in directory: {input_dir}")
+    # logging.info(f"Verifying ownership in directory: {input_dir}")
     txt_files = [f for f in os.listdir(input_dir) if f.endswith('.txt')]
-    logging.info(f"Found {len(txt_files)} .txt file(s) for ownership verification.")
-    if not txt_files:
-        logging.warning("No .txt file found for ownership verification.")
+    json_files = [f for f in os.listdir(input_dir) if f.endswith('.json')]
+
+    if len(json_files) != 1:
+        logging.warning("There should be exactly one .json file for wallet address extraction.")
         return 0.0
 
-    txt_file_path = os.path.join(input_dir, txt_files[0])
-    author, signature, random_string = read_params_from_file(txt_file_path)
-    logging.info(f" author: {author} signature: {signature}, env_sign: {os.environ.get("SIGNATURE")} random_string {random_string}")
-    is_valid = recover_account(author, signature, random_string) and os.environ.get("SIGNATURE") == signature
+    json_file_path = os.path.join(input_dir, json_files[0])
+    with open(json_file_path, 'r') as json_file:
+        wallet_data = json.load(json_file)
+        wallet_address = wallet_data.get("walletAddress")
+
+    if not wallet_address:
+        logging.warning("Wallet address not found in the .json file.")
+        return 0.0
+
+    is_valid = recover_account(wallet_address)
     return 1.0 if is_valid else 0.0
+
+
+# Execute the script independently
+if __name__ == "__main__":
+    input_dir = "../demo/input"
+    verify_ownership(input_dir)
