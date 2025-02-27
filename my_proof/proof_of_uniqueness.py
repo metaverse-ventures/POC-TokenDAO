@@ -137,10 +137,6 @@ def process_json_files(redis_client, file_mappings, gpg_signature, input_dir):
         file_path = os.path.join(input_dir, json_file)
         with open(file_path, 'r') as file:
             json_data = json.load(file)
-            if "tokens" in json_data:
-                for token in json_data["tokens"]:
-                    # Ensure reason is always available
-                    token["reason"] = token.get("reason", "No reason provided.")
             curr_file_json_data.append(json_data)
         with open(file_path, 'w') as file:
             json.dump(json_data, file, indent=4)

@@ -27,15 +27,13 @@ def load_config() -> Dict[str, Any]:
         'jwt_secret_key': os.environ.get('JWT_SECRET_KEY'),
         'file_id': os.environ.get('FILE_ID'),
         'signature': os.environ.get('SIGNATURE'),
+        'max_token_reward': os.environ.get("MAX_TOKEN_REWARD"),
+        'reward_per_token': os.environ.get("REWARD_PER_TOKEN",1),
         'fixed_message': os.environ.get('FIXED_MESSAGE'),
         'redis_port': os.environ.get('REDIS_PORT', None),
         'redis_host': os.environ.get('REDIS_HOST', None),
         'redis_pwd': os.environ.get('REDIS_PWD', None),
         'use_sealing': os.path.isdir(SEALED_DIR),
-        'eth': os.environ.get("ETH_RPC_URL"),
-        'base': os.environ.get("BASE_RPC_URL") ,
-        'vana': os.environ.get("VANA_RPC_URL"),
-        'solana': os.environ.get("SOLANA_RPC_URL"),
     }
     logging.info(f"Using config: {json.dumps(config, indent=2)}")
     return config

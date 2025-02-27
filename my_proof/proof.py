@@ -41,7 +41,7 @@ class Proof:
 
         uniqueness_details_ = uniqueness_details(self.wallet_address, self.config['input_dir'] )
         unique_tokens = uniqueness_details_.get("unique_json_data", [])
-        logging.info(f"Unique tokens from proof.py: {unique_tokens}")
+        logging.info(f" Count of Unique tokens from proof.py: {len(unique_tokens)}")
 
         uniqueness_score = uniqueness_details_.get("uniqueness_score", 0.0)
         authenticity_score, quality_score = final_scores(unique_tokens)
@@ -53,15 +53,8 @@ class Proof:
         self.proof_response.authenticity = authenticity_score
         self.proof_response.uniqueness = uniqueness_score
 
-        total_score = self.calculate_final_score(self.proof_response.model_dump())
-        self.proof_response.score = total_score
-        self.proof_response.valid = ownership_score and total_score >= 0
-
-        # Additional (public) properties to include in the proof about the data
-        self.proof_response.attributes = {
-            'total_score': total_score,
-            'score_threshold': quality_score,
-        }
+        self.proof_response.score = self.calculate_final_score(len(unique_tokens))
+        self.proof_response.valid = True
 
         # Additional metadata about the proof, written onchain
         self.proof_response.metadata = {
@@ -70,17 +63,8 @@ class Proof:
 
         return self.proof_response
     
-    def calculate_final_score(self, proof_response_object: Dict[str, Any]) -> float:
-        attributes = ['authenticity', 'uniqueness', 'quality', 'ownership']
-        weights = {
-            'authenticity': 0.325, 
-            'ownership': 0.208, 
-            'uniqueness': 0.142,  
-            'quality': 0.325
-        }
-
-        weighted_sum = 0.0
-        for attr in attributes:
-            weighted_sum += proof_response_object.get(attr, 0) * weights[attr]
-
-        return weighted_sum
+    def calculate_final_score(self, unique_token_count) -> float:
+        max_rewards = os.environ.get("MAX_TOKEN_REWARD",100)
+        reward_per_token = os.environ.get("REWARD_PER_TOKEN",1)
+        score = (unique_token_count * reward_per_token) / max_rewards
+        return score
