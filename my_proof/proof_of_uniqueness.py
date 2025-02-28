@@ -152,8 +152,8 @@ def process_json_files(redis_client, file_mappings, gpg_signature, input_dir):
     for token in curr_file_tokens:
         # Check if the token exists in the combined data with the exact same 'reason'
         if not any(
-            token["chain"] == existing_token["chain"] and
-            token["contract"] == existing_token["contract"]
+            token["token_metadata"]["chain"] == existing_token["token_metadata"]["chain"] and
+            token["token_metadata"]["contract"] == existing_token["token_metadata"]["contract"]
             for existing_token in combined_tokens
         ):
             unique_tokens.append(token)
