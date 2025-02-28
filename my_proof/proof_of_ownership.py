@@ -37,7 +37,7 @@ def verify_ownership(input_dir: str) -> float:
     json_file_path = os.path.join(input_dir, json_files[0])
     with open(json_file_path, 'r') as json_file:
         wallet_data = json.load(json_file)
-        wallet_address = wallet_data.get("walletAddress")
+        wallet_address = wallet_data.get("userAddress")
 
     if not wallet_address:
         logging.warning("Wallet address not found in the .json file.")
