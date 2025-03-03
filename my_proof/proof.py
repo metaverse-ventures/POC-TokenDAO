@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 import os
@@ -13,6 +14,8 @@ class Proof:
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.proof_response = ProofResponse(dlp_id=config['dlp_id'])
+        self.max_rewards = os.environ.get("MAX_TOKEN_REWARD",100)
+        self.reward_per_token = os.environ.get("REWARD_PER_TOKEN",1)
         self.wallet_address = ""
     
     def read_author_from_file(self, file_path: str):
@@ -41,11 +44,12 @@ class Proof:
 
         uniqueness_details_ = uniqueness_details(self.wallet_address, self.config['input_dir'] )
         unique_tokens = uniqueness_details_.get("unique_json_data", [])
+        combined_tokens = uniqueness_details_.get("old_files_json_data",[])
+        # combined_tokens = unique_tokens + unique_tokens # for testing uniquness
+
         logging.info(f" Count of Unique tokens from proof.py: {len(unique_tokens)}")
 
-        uniqueness_score = uniqueness_details_.get("uniqueness_score", 0.0)
-        authenticity_score, quality_score = final_scores(unique_tokens)
-        # Calculate uniqueness with authenticity and ownership quality
+        authenticity_score, quality_score, uniqueness_score, metadata = final_scores(unique_tokens, combined_tokens)
 
         ownership_score = verify_ownership(self.config['input_dir'])
         self.proof_response.ownership = ownership_score
@@ -57,14 +61,20 @@ class Proof:
         self.proof_response.valid = True
 
         # Additional metadata about the proof, written onchain
+        for item in metadata:
+            item["ownership"] = ownership_score 
+            item["score"] = (item["authenticity"] + item["quality"] + item["uniqueness"] + ownership_score) / 4  # Compute avg score
+
         self.proof_response.metadata = {
             'dlp_id': self.config['dlp_id'],
+            'submission_time': datetime.now().isoformat(),
+            'token_rewarded': len(unique_tokens) * self.reward_per_token,
+            'metadata': metadata,
+
         }
 
         return self.proof_response
     
     def calculate_final_score(self, unique_token_count) -> float:
-        max_rewards = os.environ.get("MAX_TOKEN_REWARD",100)
-        reward_per_token = os.environ.get("REWARD_PER_TOKEN",1)
-        score = (unique_token_count * reward_per_token) / max_rewards
+        score = (unique_token_count * self.reward_per_token) / (self.max_rewards)
         return score

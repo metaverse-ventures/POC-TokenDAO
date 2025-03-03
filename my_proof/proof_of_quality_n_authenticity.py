@@ -43,7 +43,7 @@ def validate_token_metrics(metrics):
 
     return 0.0 if errors else 1.0
 
-def calculate_token_metrics(unique_tokens):
+def calculate_token_metrics(unique_tokens, combined_tokens):
     results = []
     valid_chains = {
         "ethereum", "optimistic-ethereum", "cronos", "binance-smart-chain", "xdai", 
@@ -85,24 +85,31 @@ def calculate_token_metrics(unique_tokens):
         has_valid_attributes = bool(suggestion_attributes & valid_attributes or recommendation_attributes & valid_attributes)
         
         individual_authenticity = validate_token_metrics(metrics) if has_valid_attributes else 0
-        print(f"individual authenticity is ", individual_authenticity)
         
-        risk_score = metrics.get("riskScore")
-        
+        risk_score = metrics.get("riskScore", 0)
         individual_quality = get_risk_status_and_quality(risk_score)
         individual_quality *= individual_authenticity  # Ensure quality is zero if authenticity is zero
+
+        # Calculate uniqueness: Check if the token exists in the combined set
+        is_unique = not any(
+            data_chain == existing_token["token_metadata"]["chain"] and
+            data_contract == existing_token["token_metadata"]["contract"]
+            for existing_token in combined_tokens
+        )
+        individual_uniqueness = 1.0 if is_unique else 0.0
         
         results.append({
-            "token": data_contract,
+            "token_submitted": data_contract,
             "authenticity": individual_authenticity,
-            "quality": individual_quality
+            "quality": individual_quality,
+            "uniqueness": individual_uniqueness
         })
     
     return results
 
-def final_scores(unique_tokens):
+def final_scores(unique_tokens, combined_tokens):
     """Calculate the average authenticity and quality scores."""
-    results = calculate_token_metrics(unique_tokens)
+    results = calculate_token_metrics(unique_tokens, combined_tokens)
     # unique_token_count = len(unique_tokens)
     
     if not results:
@@ -110,8 +117,9 @@ def final_scores(unique_tokens):
 
     quality_avg = sum(result["quality"] for result in results) / len(results)
     authenticity_avg = sum(result["authenticity"] for result in results) / len(results)
-    logging.info(f"authenticity_avg: {authenticity_avg}, quality_avg: {quality_avg}, results, {results[0]}")
-    return authenticity_avg, quality_avg
+    uniqueness_avg = sum(result["uniqueness"] for result in results) / len(results)
+    logging.info(f"authenticity_avg: {authenticity_avg}, quality_avg: {quality_avg}, uniqueness_avg:, {uniqueness_avg},results, {results[0]}")
+    return authenticity_avg, quality_avg, uniqueness_avg, results
 
 # Example of how this would be executed
 if __name__ == "__main__":
@@ -119,16 +127,8 @@ if __name__ == "__main__":
     with open("../demo/input/tokenInput.json", "r") as file:
         data = json.load(file)
     
-    unique_tokens = data.get("tokens", [])  # Extract token list safely
-    
-    # networks = {
-    #     "eth": "https://mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
-    #     "base": "https://base-mainnet.infura.io/v3/0822174983b6479ca10ad18f6a5a518c",
-    #     "vana": "https://rpc.vana.org",
-    #     "solana": "https://alien-side-emerald.solana-mainnet.quiknode.pro/a9c0f414bbd654569d77f8cfec805701a08b5f03",
-    # }
-
-    results = calculate_token_metrics( unique_tokens )
+    unique_tokens = data.get("tokens", []) 
+    results = calculate_token_metrics( unique_tokens,[])
     authenticity, quality = final_scores(unique_tokens)
     print(f"authenticity, quality", authenticity, quality)
 
