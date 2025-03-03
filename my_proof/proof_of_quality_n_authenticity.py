@@ -6,15 +6,14 @@ import base58
 import requests
 
 def get_risk_status_and_quality(risk_score: float):
-            if risk_score <= 2:
-                return 0.5  # Lower quality for high risk
+            if 8 < risk_score <= 10:
+                return 0.75  # Lower quality for high risk
 
-            elif risk_score <= 4:
-                return  0.7
+            elif 5 < risk_score <= 8:
+                return  0.85
                 
-            elif risk_score <= 7:
-                return  0.9
-                
+            elif 3 < risk_score <= 5:
+                return  0.95
             else:
                 return  1.0  # Highest quality for safest risk
                 
@@ -43,7 +42,7 @@ def validate_token_metrics(metrics):
 
     return 0.0 if errors else 1.0
 
-def calculate_token_metrics(unique_tokens, combined_tokens):
+def calculate_individual_proofs(unique_tokens, combined_tokens):
     results = []
     valid_chains = {
         "ethereum", "optimistic-ethereum", "cronos", "binance-smart-chain", "xdai", 
@@ -100,6 +99,7 @@ def calculate_token_metrics(unique_tokens, combined_tokens):
         
         results.append({
             "token_submitted": data_contract,
+            "chain": data_chain,
             "authenticity": individual_authenticity,
             "quality": individual_quality,
             "uniqueness": individual_uniqueness
@@ -109,7 +109,7 @@ def calculate_token_metrics(unique_tokens, combined_tokens):
 
 def final_scores(unique_tokens, combined_tokens):
     """Calculate the average authenticity and quality scores."""
-    results = calculate_token_metrics(unique_tokens, combined_tokens)
+    results = calculate_individual_proofs(unique_tokens, combined_tokens)
     # unique_token_count = len(unique_tokens)
     
     if not results:
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         data = json.load(file)
     
     unique_tokens = data.get("tokens", []) 
-    results = calculate_token_metrics( unique_tokens,[])
+    results = calculate_individual_proofs( unique_tokens,[])
     authenticity, quality = final_scores(unique_tokens)
     print(f"authenticity, quality", authenticity, quality)
 
